@@ -1,8 +1,7 @@
 #!/bin/sh
-#< build-me.sh - qt-gui - 20150531 - 20150524
-# 20150531 - add some command options
+#< build-me.sh - tidy-gui2 - 20150605
 BN=`basename $0`
-TMPPRJ="qt-gui"
+TMPPRJ="tidy-gui2"
 TMPLOG="bldlog-1.txt"
 TMPOPTS=""
 TMPOPTS="-DCMAKE_INSTALL_PREFIX=$HOME"
