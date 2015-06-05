@@ -1,0 +1,8 @@
+bldlog-1.txt
+qt-gui
+qtxml-test
+src
+tabdialog
+qrc_icons.cxx
+tidy-gui2
+

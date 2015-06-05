@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file alias="tidyicon">tidyicon.png</file>
+        <file alias="open">folder-open.png</file>
+        <file alias="save">floppy.png</file>
+    </qresource>
+</RCC>
