@@ -20,6 +20,7 @@
 extern Bool openTidyLib();  // init library
 extern void closeTidyLib(); // close libray
 extern void runTidyLib( const char *file ); // tidy a file
+extern const char *getLibVersion();
 
 extern void clearBuffers(int flag = 0); // 0=all, 1=errbuf, 2=outbuf, 4=cfgbuf
 extern char *getErrBufText();

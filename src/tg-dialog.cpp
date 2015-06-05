@@ -303,10 +303,10 @@ void TabDialog::onShow()
 }
 
 static const char *about =
-    "<h1>This is TidyGUI2 - v.2.0.0</h1>\n\n"
+    "<h1>" APP_NAME " - " APP_VERSION "</h1>\n\n"
     "<p>This Qt GUI provides an interface to HTML Tidy library.</p>\n\n"
     "<p>HTML Tidy library and console app <a href=\"http://www.html-tidy.org/\">Home Page</a></p> \n\n"
-    "<p>Full free open <a href=\"https://github.com/htacg/tidy-html5\"><b>source</b></a> available.</p>\n\n"
+    "<p>Free open sources <a href=\"https://github.com/geoffmcl/tidy-gui2\"><b>GUI</b></a>, and <a href=\"https://github.com/htacg/tidy-html5\"><b>library</b></a> available.</p>\n\n"
     "<p>HTML Tidy library is\n"
     "Copyright <a href=\"http://www.w3.org/\">World Wide Web Consortium</a>,<br>"
     "and this GUI uses <a href=\"http://www.qt.io/developers/\">Qt</a> runtime libaries</p>\n\n"
@@ -318,7 +318,7 @@ static const char *about =
 void TabDialog::on_about()
 {
     QString msg = about;
-    QMessageBox::about(this, tr("About Tidy GUI2"), msg);
+    QMessageBox::about(this, tr("About " APP_NAME), msg);
 }
 
 
@@ -403,6 +403,14 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
+    QLineEdit *libverEdit = new QLineEdit("");
+    QString s = QString("Using HTML Tidy library version %1").arg(getLibVersion());
+    libverEdit->setAlignment(Qt::AlignHCenter);
+    libverEdit->setText(s);
+    libverEdit->setReadOnly(true);
+    libverEdit->setFrame(false);
+    mainLayout->addWidget(libverEdit);
+
     QGroupBox *inputfileGroup = new QGroupBox("Input File Name");
     QHBoxLayout *inputfileLay = new QHBoxLayout;
 
@@ -426,6 +434,7 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
 
     QGroupBox *configfileGroup = new QGroupBox("Config File Name");
     QHBoxLayout *configfileLay = new QHBoxLayout;
+    
     configfileLay->addWidget(configNameEdit);
     configfileLay->addWidget(configNameBrowse);
     connect(configNameBrowse, SIGNAL(clicked()),this,SLOT(on_configNameBrowse()));
@@ -435,7 +444,7 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     mainLayout->addWidget(configfileGroup);
 
     mainLayout->addWidget(errEditor);
-    mainLayout->addStretch(1);
+    // mainLayout->addStretch(1); // no - let the editor fill the remaining space
     setLayout(mainLayout);
 
     if (!pinf->input.size() || !m_fileExists( pinf->input )) {

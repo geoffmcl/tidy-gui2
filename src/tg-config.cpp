@@ -153,6 +153,16 @@ void closeTidyLib()
     tdoc = 0;
 }
 
+static char libver[256];
+const char *getLibVersion()
+{
+    char *ccp = libver;
+    QString v = tidyLibraryVersion();
+    v = v.trimmed();
+    strcpy(ccp,v.toStdString().c_str());
+    return ccp;
+}
+
 void runTidyLib( const char *file )
 {
     int rc;
