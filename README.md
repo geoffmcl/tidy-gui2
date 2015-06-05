@@ -39,9 +39,9 @@ Using the native make build tool, this can be as simple as -
  3. make
  4. [sudo] make install
  
- #### Windows
+##### Windows
  
- If a version of MSVC is installed, this again this can be a simple -
+If a version of MSVC is installed, this again this can be a simple -
   
   1. cd tidy-gui2
   2. cmake .
