@@ -8,6 +8,29 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 project( Tidy-GUI2 )
 
+# ### NOTE: *** Adjust version.txt when required ***
+# read 'version' file into a variable (stripping any newlines or spaces)
+file(READ version.txt versionFile)
+if (NOT versionFile)
+    message(FATAL_ERROR "Unable to determine libtidy version. version.txt file is missing.")
+endif()
+string(STRIP "${versionFile}" TIDYGUI2_VERSION)
+string(REPLACE "." ";" VERSION_LIST ${TIDYGUI2_VERSION})
+list(GET VERSION_LIST 0 TG2_MAJOR_VER)
+list(GET VERSION_LIST 1 TG2_MINOR_VER)
+list(GET VERSION_LIST 2 TG2_POINT_VER)
+
+# This is the title bar displayed name and version
+add_definitions( -DAPP_NAME="Tidy GUI 2" )
+add_definitions( -DAPP_VERSION="${TG2_MAJOR_VER}.${TG2_MINOR_VER}.${TG2_POINT_VER}" )
+
+# These should NOT be changed that often...
+# It only set where the INI and default CFG file are
+add_definitions( -DAPP_SETV="0.0.1" )
+add_definitions( -DAPP_SETD="geoffair.org" )
+add_definitions( -DAPP_SETO="geoffair" )
+add_definitions( -DAPP_SETN="tidygui2" )
+
 # Add LINUX or WINDOWS definitions
 if(UNIX)
    add_definitions( -DLINUX )

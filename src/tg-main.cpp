@@ -10,6 +10,13 @@
 #include "tg-dialog.h"
 #include "tg-config.h"
 
+#ifndef APP_SETD
+#define APP_SETD "geoffair.org"
+#endif
+#ifndef APP_SETO
+#define APP_SETO "geoffair"
+#endif
+
 #ifndef APP_SETN
 #define APP_SETN "tidygui2"
 #endif
@@ -29,10 +36,10 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-    QApplication::setOrganizationDomain("geoffair.org");
+    QApplication::setOrganizationDomain(APP_SETD);
 
     // store the UNIX file as $HOME/.config/geoffair/Qt_OSM_Map.conf - nav: . hconf; cd geoffair
-    QApplication::setOrganizationName("geoffair");
+    QApplication::setOrganizationName(APP_SETO);
     QApplication::setApplicationName(APP_SETN);
     QApplication::setApplicationVersion(APP_SETV);
 

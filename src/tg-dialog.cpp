@@ -33,6 +33,12 @@
 #include "tg-config.h"
 
 // #define USE_HTML_EDITOR
+#ifndef APP_NAME
+#define APP_NAME "Tidy GUI2"
+#endif
+#ifndef APP_VERSION
+#define APP_VERSION "4.9.30"
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // INI File location:
@@ -264,7 +270,7 @@ TabDialog::TabDialog(const QString &fileName, QWidget *parent)
     mainLayout->addWidget(buttonBox);
     mainLayout->addWidget(tabWidget);
     setLayout(mainLayout);
-    setWindowTitle(tr("Tidy GUI 2"));
+    setWindowTitle(tr(APP_NAME " - " APP_VERSION));
     setWindowIcon(QIcon(":/icon/tidyicon"));
 
     // load any default config file
