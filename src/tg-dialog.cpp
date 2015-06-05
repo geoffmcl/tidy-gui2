@@ -406,6 +406,7 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     QLineEdit *libverEdit = new QLineEdit("");
     QString s = QString("Using HTML Tidy library version %1").arg(getLibVersion());
     libverEdit->setAlignment(Qt::AlignHCenter);
+    libverEdit->setStyleSheet("background:transparent;");
     libverEdit->setText(s);
     libverEdit->setReadOnly(true);
     libverEdit->setFrame(false);
