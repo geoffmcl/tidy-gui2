@@ -1,0 +1,15 @@
+*.vcxproj
+*.filters
+CMakeCache.txt
+CMakeFiles/*
+Debug/*
+RelWithDebInfo/*
+Release/*
+*.sln
+bldlog-1.txt
+cmake_install.cmake
+qrc_icons.cxx
+src/*
+x64/*
+*.dir/*
+
