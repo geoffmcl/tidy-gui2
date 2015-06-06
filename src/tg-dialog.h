@@ -13,10 +13,15 @@
 #include <QSettings>
 #include <QString>
 #include <QTextEdit>
+#include <QTabWidget>
+#include <QTabBar>
 
 typedef struct tabINFOSTR {
     int count;
-    QString input;
+    QString inputStr;
+    QString outputStr;
+    QString configStr;
+    QString errorStr;
 }INFOSTR, *PINFOSTR;
 
 // Hmmm, seems another way to include things - strange
@@ -26,12 +31,17 @@ class QFileInfo;
 class QTabWidget;
 QT_END_NAMESPACE
 
+#define USE_MYTAB_WIDGET
+
 extern QSettings *m_settings;    // = new QSettings(tmp,QSettings::IniFormat,this);
 extern void set_bigEdit( const char *text );
 extern void append_bigEdit( const char *text );
 extern void set_errEdit( const char *text );
 extern void append_errEdit( const char *text );
 extern void set_outNameEdit(QString);
+// forward refs
+extern QString get_error_file();
+extern void set_error_file(QString s);
 
 #ifdef USE_MYTAB_WIDGET
 /**
@@ -61,7 +71,7 @@ class TabDialog : public QDialog
     Q_OBJECT
 
 public:
-    TabDialog(const QString &fileName, QWidget *parent = 0);
+    TabDialog(PINFOSTR pinfo, QWidget *parent = 0);
     void closeEvent(QCloseEvent *event);
 
 public slots:

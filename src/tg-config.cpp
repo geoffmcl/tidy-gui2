@@ -8,6 +8,8 @@
 
 #include <QtGlobal> 
 #include <QString>
+#include <QFile>
+#include <QTextStream>
 #include <stdio.h>
 #include <string.h>
 #include <tidy.h>
@@ -183,6 +185,22 @@ void runTidyLib( const char *file )
     if (errbuf.bp) {
         set_errEdit(msg.toStdString().c_str());
         append_errEdit( (const char *)errbuf.bp );
+        QString f = get_error_file();
+        if (f.size()) {
+            QFile efile( f );
+            if ( efile.open(QIODevice::ReadWrite | QIODevice::Append |  QIODevice::Text) ) {
+                QTextStream stream( &efile );
+                msg.append( (const char *)errbuf.bp );
+                stream << msg << endl;
+                efile.close();
+                msg = QString("Appended to %1\n").arg(f);
+                append_errEdit( msg.toStdString().c_str() );
+                set_error_file(f);  // set and write to persistent
+            } else {
+                msg = QString("UNable to appended to %1\n").arg(f);
+                append_errEdit( msg.toStdString().c_str() );
+            }
+        }
     }
 
     msg = QString("Results: file %1 (%2)\n").arg(file,QString::number(rc));

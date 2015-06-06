@@ -76,12 +76,10 @@
 #define S_LASTTAB "lasttab"
 #define S_CONFIG "configfile"
 #define S_OUTPUT "outputfile"
-
+#define S_ERRFILE "errorfile"
 
 // single sole 'settings'
 QSettings *m_settings;    // = new QSettings(tmp,QSettings::IniFormat,this);
-
-PINFOSTR m_pinfo;
 
 QPushButton *buttonTidy;
 #ifdef USE_HTML_EDITOR  // declare editor variable
@@ -182,14 +180,10 @@ static QString cfg_file;
 //          or %LOCALAPPDATA%\geoffair\tidygui2\TidyGUI2.ini
 // In Linux:   $HOME/.local/share/data/geoffair/tidygui2/TidyGUI2.ini
 //////////////////////////////////////////////////////////////////////////////////////////
-TabDialog::TabDialog(const QString &fileName, QWidget *parent)
+TabDialog::TabDialog(PINFOSTR m_pinfo, QWidget *parent)
     : QDialog(parent)
 {
     // QFileInfo fileInfo(fileName);
-    m_pinfo = new INFOSTR;
-    if (fileName.size() && m_fileExists(fileName)) {
-        m_pinfo->input = fileName;
-    }
 
     QString tmp = QDir(QDesktopServices::storageLocation(
                     QDesktopServices::DataLocation)).absolutePath();
@@ -216,7 +210,7 @@ TabDialog::TabDialog(const QString &fileName, QWidget *parent)
 
     buttonTidy = new QPushButton();
 	buttonTidy->setText("Tidy!");
-    if (!m_fileExists(fileName)) {
+    if (!m_fileExists(m_pinfo->inputStr)) {
         buttonTidy->setEnabled(false);
     }
 
@@ -301,6 +295,12 @@ TabDialog::TabDialog(const QString &fileName, QWidget *parent)
     if (m_fileExists(cfg_file)) {
         ConfigTabPtr->loadConfig(cfg_file, lcfo_silent | lcfo_noerr); // silently restore config to saved default
     }
+
+    // must be done AFTER all pages instantiate
+    QString file = m_pinfo->errorStr;
+    if (!file.size())
+        file = m_settings->value(S_ERRFILE,"").toString();
+    set_error_file(file);
 }
 
 void TabDialog::closeEvent(QCloseEvent *event)
@@ -472,17 +472,21 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     // mainLayout->addStretch(1); // no - let the editor fill the remaining space
     setLayout(mainLayout);
 
-    if (!pinf->input.size() || !m_fileExists( pinf->input )) {
-        pinf->input = m_settings->value(S_INPUT,"").toString();
+    if (!pinf->inputStr.size() || !m_fileExists( pinf->inputStr )) {
+        pinf->inputStr = m_settings->value(S_INPUT,"").toString();
     }
-    if (pinf->input.size() && m_fileExists( pinf->input )) {
-        fileNameEdit->setText( pinf->input );
+    if (pinf->inputStr.size() && m_fileExists( pinf->inputStr )) {
+        fileNameEdit->setText( pinf->inputStr );
     }
 
-    QString file;
-    file = m_settings->value(S_OUTPUT,"").toString();
+    QString file = pinf->outputStr;
+    if (!file.size())
+        file = m_settings->value(S_OUTPUT,"").toString();
     outputNameEdit->setText(file);
-    file = m_settings->value(S_CONFIG,"").toString();
+
+    file = pinf->configStr;
+    if (!file.size())
+        file = m_settings->value(S_CONFIG,"").toString();
     configNameEdit->setText(file);
 
     on_fileNameEdit();
@@ -3290,6 +3294,28 @@ void ConfigTab::do_configUpdate()
         s.append( "\nOnly the first is shown! There could be others?" );
         s.append( "\n *** FIX ME ***, or at least report an Issue.\n" );
         QMessageBox::warning(this, tr("File is Empty"),s,QMessageBox::Ok);
+    }
+}
+
+QString get_error_file()
+{
+    QString s;
+    if (error_fileEd)
+        s = error_fileEd->text();
+    return s;
+}
+
+void set_error_file(QString s)
+{
+    if (s.size()) {
+        QFileInfo fi(s);
+        QString ff = fi.absoluteFilePath();
+        m_settings->setValue(S_ERRFILE,ff);
+        if (error_fileEd)
+            error_fileEd->setText(ff);
+    } else {
+        if (error_fileEd)
+            error_fileEd->setText(s);
     }
 }
 
