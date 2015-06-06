@@ -28,11 +28,16 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QStringList>
+#include <QTabWidget>
+#include <QTabBar>
+
+// #define USE_HTML_EDITOR
+#define USE_MYTAB_WIDGET
 
 #include "tg-dialog.h"
 #include "tg-config.h"
 
-// #define USE_HTML_EDITOR
+
 #ifndef APP_NAME
 #define APP_NAME "Tidy GUI2"
 #endif
@@ -57,6 +62,7 @@
 #define M_GEN_TAB  0
 #define M_CFG_TAB  1
 #define M_OUT_TAB  2
+
 #define M_DIAG_TAB 3
 #define M_ENC_TAB  4
 #define M_MARK_TAB 5
@@ -70,6 +76,7 @@
 #define S_LASTTAB "lasttab"
 #define S_CONFIG "configfile"
 #define S_OUTPUT "outputfile"
+
 
 // single sole 'settings'
 QSettings *m_settings;    // = new QSettings(tmp,QSettings::IniFormat,this);
@@ -236,7 +243,11 @@ TabDialog::TabDialog(const QString &fileName, QWidget *parent)
 	connect(buttonAbout, SIGNAL(clicked()), this, SLOT(on_about()));
 
     // set up the TABS
+#ifdef USE_MYTAB_WIDGET
+    tabWidget = new MyTabWidget;
+#else
     tabWidget = new QTabWidget;
+#endif
 
     GeneralTabPtr = new GeneralTab( m_pinfo );
     DiagnosticsTabPtr = new DiagnosticsTab( m_pinfo );
@@ -257,6 +268,18 @@ TabDialog::TabDialog(const QString &fileName, QWidget *parent)
     tabWidget->addTab(MarkupTabPtr, tr("Markup"));
     tabWidget->addTab(MiscTabPtr, tr("Misc"));
     tabWidget->addTab(PrintTabPtr, tr("Print"));
+
+#ifdef USE_MYTAB_WIDGET
+    tabWidget->tabBar()->setTabTextColor(M_GEN_TAB,Qt::blue);
+    tabWidget->tabBar()->setTabTextColor(M_CFG_TAB,Qt::blue);
+    tabWidget->tabBar()->setTabTextColor(M_OUT_TAB,Qt::blue);
+
+	tabWidget->tabBar()->setTabTextColor(M_DIAG_TAB,Qt::red);
+	tabWidget->tabBar()->setTabTextColor(M_ENC_TAB,Qt::red);
+	tabWidget->tabBar()->setTabTextColor(M_MARK_TAB,Qt::red);
+	tabWidget->tabBar()->setTabTextColor(M_MISC_TAB,Qt::red);
+	tabWidget->tabBar()->setTabTextColor(M_PRT_TAB,Qt::red);
+#endif
 
     int index = m_settings->value(S_LASTTAB,"0").toInt();
     if ((index == M_CFG_TAB)||(index == M_OUT_TAB)) {

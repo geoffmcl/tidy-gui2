@@ -19,6 +19,7 @@ typedef struct tabINFOSTR {
     QString input;
 }INFOSTR, *PINFOSTR;
 
+// Hmmm, seems another way to include things - strange
 QT_BEGIN_NAMESPACE
 class QDialogButtonBox;
 class QFileInfo;
@@ -31,6 +32,29 @@ extern void append_bigEdit( const char *text );
 extern void set_errEdit( const char *text );
 extern void append_errEdit( const char *text );
 extern void set_outNameEdit(QString);
+
+#ifdef USE_MYTAB_WIDGET
+/**
+ *  Derived Class from QTabWidget.
+ *  Protected QTabWidget::tabBar() method is 
+ *  overridden in order to make it accessible.
+ */
+class MyTabWidget:public QTabWidget
+{
+public:
+    MyTabWidget(QWidget* parent = 0)
+    {
+      setParent(parent);
+    }
+    
+    //Overridden method from QTabWidget
+    QTabBar* tabBar()
+    {
+      return QTabWidget::tabBar();
+    }
+};
+#endif // USE_MYTAB_WIDGET
+
 
 class TabDialog : public QDialog
 {
@@ -48,7 +72,11 @@ public slots:
     void on_tab_changed();
 
 private:
+#ifdef USE_MYTAB_WIDGET
+    MyTabWidget *tabWidget;
+#else
     QTabWidget *tabWidget;
+#endif
     QDialogButtonBox *buttonBox;
 };
 
