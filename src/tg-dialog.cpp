@@ -270,6 +270,7 @@ TabDialog::TabDialog(const QString &fileName, QWidget *parent)
     tabWidget->addTab(PrintTabPtr, tr("Print"));
 
 #ifdef USE_MYTAB_WIDGET
+    // YOWEE, works and looks GREAT
     tabWidget->tabBar()->setTabTextColor(M_GEN_TAB,Qt::blue);
     tabWidget->tabBar()->setTabTextColor(M_CFG_TAB,Qt::blue);
     tabWidget->tabBar()->setTabTextColor(M_OUT_TAB,Qt::blue);
