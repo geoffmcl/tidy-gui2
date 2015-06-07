@@ -314,6 +314,27 @@ Bool setConfigStg( const char *item, const char *stg )
     TidyOptionId id = getTidyOptionId(item);
     if (id < N_TIDY_OPTIONS) {
         const char *curr = tidyOptGetValue(tdoc,id);
+        if (curr) {
+            // have a value, but only set if different
+            if (strcmp(curr,stg)) {
+                done = tidyOptSetValue(tdoc,id,stg);
+            }
+        } else {
+            // presently NO VALUE, set ONLY if there is LENGTH now
+            if (strlen(stg)) {
+                done = tidyOptSetValue(tdoc,id,stg);
+            }
+        }
+    }
+    return done;
+}
+
+Bool setConfigStg_BAD( const char *item, const char *stg )
+{
+    Bool done = no;
+    TidyOptionId id = getTidyOptionId(item);
+    if (id < N_TIDY_OPTIONS) {
+        const char *curr = tidyOptGetValue(tdoc,id);
         if (!curr || strcmp(curr,stg)) {
             done = tidyOptSetValue(tdoc,id,stg);
         }
