@@ -165,7 +165,7 @@ const char *getLibVersion()
     return ccp;
 }
 
-void runTidyLib( const char *file )
+int runTidyLib( const char *file )
 {
     int rc;
 
@@ -206,10 +206,9 @@ void runTidyLib( const char *file )
     msg = QString("Results: file %1 (%2)\n").arg(file,QString::number(rc));
     set_outNameEdit(msg);
     if (output.bp) {
-        //set_bigEdit( msg.toStdString().c_str() );
-        //append_bigEdit( (const char *)output.bp );
         set_bigEdit( (const char *)output.bp );
     }
+    return rc;
 }
 
 ///////////////////////////////////////////////////////

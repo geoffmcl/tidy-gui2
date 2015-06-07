@@ -30,7 +30,6 @@
 #include <QStringList>
 #include <QTabWidget>
 #include <QTabBar>
-//#include <QComboBox)
 
 // #define USE_HTML_EDITOR
 #define USE_MYTAB_WIDGET
@@ -92,7 +91,7 @@ QTextEdit *bigEditor = 0;
 QPlainTextEdit *errEditor = 0;
 QPlainTextEdit *bigEditor = 0;
 #endif
-QTextEdit *cfgEditor;
+QTextEdit *cfgEditor = 0;
 
 
 #ifdef USE_COMBO_BOX    // declaration and get/set
@@ -480,10 +479,34 @@ void TabDialog::on_buttonTidy()
 
 }
 
+/* ============================================================================
+    on_tab_changed() - On TAB page changed
+   ============================================================================ */
 void TabDialog::on_tab_changed()
 {
     int ind = tabWidget->currentIndex();
     m_settings->setValue( S_LASTTAB, ind );  // save the last tab index
+    if (ind == M_CFG_TAB) {
+        // if currently blank, and we have a valid CONFIG file, then do VIEW
+        QString txt = cfgEditor->toPlainText();
+        txt = txt.trimmed();
+        if (txt.size() == 0) {
+            const char *ccp = get_all_options(false,false);
+            cfgEditor->setText(ccp);
+        }
+    } else if ((ind == M_OUT_TAB) && buttonTidy->isEnabled() ) {
+        // if currently blank, and we have a valid INPUT file, then do TIDY!
+        QString text = bigEditor->toPlainText(); // get this save html
+        text = text.trimmed();
+        if (text.size() == 0) {
+            QString file = get_fileNameEdit();
+            file = file.trimmed();
+            if (m_fileExists(file)) {
+                runTidyLib( file.toStdString().c_str() );
+                m_settings->setValue( S_INPUT, file );  // save the last tidied file name
+            }
+        }
+    }
 }
 
 static void check_me(QWidget *w)
@@ -1018,8 +1041,7 @@ void ConfigTab::on_buttonLoad()
         loadConfig(name);
     } else {
         QString msg = QString("File %1 does NOT exist!\nChoose a new config file\n").arg(name);
-        m_tabDialog->tabWidget->setCurrentIndex(M_CFG_TAB); // Select Tab Here
-
+        m_tabDialog->tabWidget->setCurrentIndex(M_GEN_TAB); // Select Tab Here
         QMessageBox::warning(this, tr("File Not Found"),msg,QMessageBox::Ok);
     }
 }
