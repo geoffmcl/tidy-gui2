@@ -73,6 +73,11 @@ class TabDialog : public QDialog
 public:
     TabDialog(PINFOSTR pinfo, QWidget *parent = 0);
     void closeEvent(QCloseEvent *event);
+#ifdef USE_MYTAB_WIDGET
+    MyTabWidget *tabWidget;
+#else
+    QTabWidget *tabWidget;
+#endif
 
 public slots:
     void onQuit();
@@ -82,14 +87,10 @@ public slots:
     void on_tab_changed();
 
 private:
-#ifdef USE_MYTAB_WIDGET
-    MyTabWidget *tabWidget;
-#else
-    QTabWidget *tabWidget;
-#endif
     QDialogButtonBox *buttonBox;
 };
 
+extern TabDialog *m_tabDialog;
 
 ////////////////////////////////////////////////
 // TABS

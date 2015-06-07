@@ -113,7 +113,6 @@ exit:
 int main(int argc, char *argv[])
 {
     int iret = 0;
-    TabDialog *td = 0;
 
     QApplication app(argc, argv);
 
@@ -135,20 +134,22 @@ int main(int argc, char *argv[])
         goto exit;
     }
 
-    td = new TabDialog(m_pinfo);
+    m_tabDialog = new TabDialog(m_pinfo);
 #ifdef Q_OS_SYMBIAN
-    td->showMaximized();
+    m_tabDialog->showMaximized();
 #else
-    td->show();
+    m_tabDialog->show();
 #endif
 
     iret = app.exec();
 
 exit:
-    if (td)
-        delete td;
+    if (m_tabDialog)
+        delete m_tabDialog;
+    m_tabDialog = 0;
     if (m_pinfo)
         delete m_pinfo;
+    m_pinfo = 0;
     closeTidyLib();
     return iret;
 }

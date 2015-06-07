@@ -30,13 +30,16 @@
 #include <QStringList>
 #include <QTabWidget>
 #include <QTabBar>
+//#include <QComboBox)
 
 // #define USE_HTML_EDITOR
 #define USE_MYTAB_WIDGET
+#define USE_COMBO_BOX
 
 #include "tg-dialog.h"
 #include "tg-config.h"
 
+TabDialog *m_tabDialog = 0;
 
 #ifndef APP_NAME
 #define APP_NAME "Tidy GUI2"
@@ -91,13 +94,109 @@ QPlainTextEdit *bigEditor = 0;
 #endif
 QTextEdit *cfgEditor;
 
-QLineEdit *fileNameEdit;
+
+#ifdef USE_COMBO_BOX    // declaration and get/set
+QString get_currentText(QComboBox *comb)
+{
+    QString file = comb->currentText();
+    return file;
+}
+void set_currentText(QComboBox *comb, QString file)
+{
+    int i = comb->findData(file);
+    if (i != -1) {
+        comb->setCurrentIndex(i);
+    } else {
+        comb->addItem(file,file);
+        i = comb->findData(file);
+        comb->setCurrentIndex(i);
+        //fileNameEdit->setEditText(file);
+    }
+}
+
+void save_ComboBox(QComboBox *comb, const char *group, const char *title)
+{
+    int i, cnt = comb->count();
+    int num = 0;
+    QString file = comb->currentText();
+    QString value;
+    // hope this clears ALL previous
+    m_settings->beginGroup(group);
+    m_settings->remove("");
+    m_settings->endGroup();
+    QString n = QString::number(num);
+    QString item = QString("%1/%2%3").arg(group,title,n);
+    m_settings->setValue( item, file );  // save this file name FIRST
+    num++;
+    for (i = 0; i < cnt; i++) {
+        n = QString::number(num);
+        item = QString("%1/%2%3").arg(group,title,n);
+        value = comb->itemText(i);
+        if (value == file)
+            continue;   // already saved this item
+        m_settings->setValue( item, value );  // save this file name
+        num++;
+    }
+
+}
+
+typedef void (*set_function)(QString);
+
+void load_ComboBox(QComboBox *comb, const char *group, const char *title, set_function f)
+{
+    int num;
+    for (num = 0; num < 64; num++) {
+        QString n = QString::number(num);
+        QString item = QString("%1/%2%3").arg(group,title,n);
+        QString file = m_settings->value(item,"").toString();
+        if (file.size() == 0)
+            break;
+        f(file);
+    }
+    comb->setCurrentIndex(0);
+}
+
+QComboBox *fileNameEdit = 0;
+QComboBox *configNameEdit = 0;
+
+QString get_fileNameEdit() { return get_currentText(fileNameEdit); }
+void set_fileNameEdit(QString file) { set_currentText(fileNameEdit,file); }
+void save_fileNameEdit() { save_ComboBox(fileNameEdit, "inputs", S_INPUT); }
+void load_fileNameEdit() { load_ComboBox(fileNameEdit, "inputs", S_INPUT, set_fileNameEdit); }
+
+QString get_configNameEdit() { return get_currentText(configNameEdit); }
+void set_configNameEdit(QString file) { set_currentText(configNameEdit,file); }
+void save_configNameEdit() { save_ComboBox(configNameEdit, "configs", S_CONFIG); }
+void load_configNameEdit() { load_ComboBox(configNameEdit, "configs", S_CONFIG, set_configNameEdit); }
+
+#else
+QLineEdit *fileNameEdit = 0;
+QLineEdit *configNameEdit = 0;
+QString get_fileNameEdit()
+{
+    QString file = fileNameEdit->text();
+    return file;
+}
+void set_fileNameEdit(QString file)
+{
+        fileNameEdit->setText(file);
+}
+QString configNameEdit()
+{
+    QString file = configNameEdit->text();
+    return file;
+}
+void set_configNameEdit(QString file)
+{
+    configNameEdit->setText(file);
+}
+#endif
+
 QToolButton *fileNameBrowse;
 
 QLineEdit *outputNameEdit;
 QToolButton *outputNameBrowse;
 
-QLineEdit *configNameEdit;
 QToolButton *configNameBrowse;
 
 QLineEdit *outNameEdit = 0;
@@ -312,6 +411,8 @@ void TabDialog::closeEvent(QCloseEvent *event)
         ccp = "";
     }
     ConfigTabPtr->saveConfig(cfg_file, ccp, lcfo_silent | lcfo_noerr ); // silently rest config to default saved
+    save_fileNameEdit();
+    save_configNameEdit();    // save the list
     event->accept();
 }
 
@@ -350,7 +451,7 @@ void TabDialog::on_buttonTidy()
 {
     // This is the REAL WORK 
     // How to pass the file to tidy
-    QString file = fileNameEdit->text();
+    QString file = get_fileNameEdit();
     file = file.trimmed();
     if (!m_fileExists(file)) {
         QString msg;
@@ -366,7 +467,7 @@ void TabDialog::on_buttonTidy()
     QFileInfo fi(file);
     QString ff = fi.absoluteFilePath();
     if (file != ff) {
-        fileNameEdit->setText(ff);
+        set_fileNameEdit(ff);
         file = ff;
     }
 
@@ -395,7 +496,15 @@ static void check_me(QWidget *w)
 GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     : QWidget(parent)
 {
+#ifdef USE_COMBO_BOX    // new QComboBox(this)
+    fileNameEdit = new QComboBox(this);
+    load_fileNameEdit();    // load any previous
+    fileNameEdit->setEditable(true);
+    // should I add this??? Is it needed
+    fileNameEdit->setInsertPolicy(QComboBox::InsertAtTop);
+#else
     fileNameEdit = new QLineEdit("");
+#endif
     fileNameBrowse = new QToolButton();
     fileNameBrowse->setToolTip("Browse for input file");
     fileNameBrowse->setIcon(QIcon(":/icon/open"));
@@ -407,7 +516,15 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     outputNameBrowse->setIcon(QIcon(":/icon/save"));
     outputNameBrowse->setToolButtonStyle(Qt::ToolButtonIconOnly);
 
+#ifdef USE_COMBO_BOX    // configNameEdit = new QComboBox(this)
+    configNameEdit = new QComboBox(this);
+    load_configNameEdit();    // load any previous
+    configNameEdit->setEditable(true);
+    // should I add this??? Is it needed
+    configNameEdit->setInsertPolicy(QComboBox::InsertAtTop);
+#else
     configNameEdit = new QLineEdit("");
+#endif
     configNameBrowse = new QToolButton();
     configNameBrowse->setToolTip("Browse for config file");
     configNameBrowse->setIcon(QIcon(":/icon/save"));
@@ -441,7 +558,12 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
 
     inputfileLay->addWidget(fileNameEdit);
     inputfileLay->addWidget(fileNameBrowse);
+
+#ifdef USE_COMBO_BOX    // fileNameEdit connect
+    connect(fileNameEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(on_fileNameEdit()));
+#else
     connect(fileNameEdit,SIGNAL(editingFinished()),this,SLOT(on_fileNameEdit()));
+#endif
     connect(fileNameBrowse, SIGNAL(clicked()),this,SLOT(on_fileNameBrowse()));
 
     inputfileGroup->setLayout(inputfileLay);
@@ -463,7 +585,11 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     configfileLay->addWidget(configNameEdit);
     configfileLay->addWidget(configNameBrowse);
     connect(configNameBrowse, SIGNAL(clicked()),this,SLOT(on_configNameBrowse()));
+#ifdef USE_COMBO_BOX    // configNameEdit connect
+    connect(configNameEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(on_configNameEdit()));
+#else
     connect(configNameEdit,SIGNAL(editingFinished()),this,SLOT(on_configNameEdit()));
+#endif
 
     configfileGroup->setLayout(configfileLay);
     mainLayout->addWidget(configfileGroup);
@@ -476,7 +602,7 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
         pinf->inputStr = m_settings->value(S_INPUT,"").toString();
     }
     if (pinf->inputStr.size() && m_fileExists( pinf->inputStr )) {
-        fileNameEdit->setText( pinf->inputStr );
+        set_fileNameEdit( pinf->inputStr );
     }
 
     QString file = pinf->outputStr;
@@ -487,7 +613,7 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     file = pinf->configStr;
     if (!file.size())
         file = m_settings->value(S_CONFIG,"").toString();
-    configNameEdit->setText(file);
+    set_configNameEdit(file);
 
     on_fileNameEdit();
     on_outputNameEdit();
@@ -497,7 +623,7 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
 
 void GeneralTab::on_fileNameEdit()
 {
-    QString file = fileNameEdit->text();
+    QString file = get_fileNameEdit();
     if (m_fileExists(file)) {
         buttonTidy->setEnabled(true);
         fileNameEdit->setStyleSheet("border: 1px solid green");
@@ -519,7 +645,7 @@ void GeneralTab::on_outputNameEdit()
 
 void GeneralTab::on_configNameEdit()
 {
-    QString file = configNameEdit->text();
+    QString file = get_configNameEdit();
     if (m_fileExists(file)) {
         configNameEdit->setStyleSheet("border: 1px solid green");
     } else {
@@ -542,9 +668,10 @@ void GeneralTab::on_fileNameBrowse()
 {
     QString title = "Get input file name";
     QString filters = filterSpec;
-    QString inputFile = QFileDialog::getOpenFileName(this, title, fileNameEdit->text(), filters);
+    QString file = get_fileNameEdit();
+    QString inputFile = QFileDialog::getOpenFileName(this, title, file, filters);
     if(inputFile.length() > 0) {
-        fileNameEdit->setText(inputFile);
+        set_fileNameEdit(inputFile);
         on_fileNameEdit();
     }
 }
@@ -565,9 +692,10 @@ void GeneralTab::on_configNameBrowse()
 {
     QString title = "Choose config file";
     QString filters = filterSpec2;
-    QString outputFile = QFileDialog::getSaveFileName(this, title, configNameEdit->text(), filters);
+    QString file = get_configNameEdit();
+    QString outputFile = QFileDialog::getSaveFileName(this, title, file, filters);
     if(outputFile.length() > 0) {
-        configNameEdit->setText(outputFile);
+        set_configNameEdit(outputFile);
         m_settings->setValue( S_CONFIG, outputFile );  // save the config file name
         on_configNameEdit();
     }
@@ -786,9 +914,10 @@ void ConfigTab::on_buttonSaveAs()
     }
     QString title = "Get output config file name";
     QString filters = filterSpec2;
-    QString outputFile = QFileDialog::getSaveFileName(this, title, configNameEdit->text(), filters);
+    QString file = get_configNameEdit();
+    QString outputFile = QFileDialog::getSaveFileName(this, title, file, filters);
     if(outputFile.length() > 0) {
-        configNameEdit->setText(outputFile);
+        set_configNameEdit(outputFile);
         // ok, we are going to write to a file...
         if (saveConfig(outputFile,ccp) )
             m_settings->setValue( S_CONFIG, outputFile );  // save the last tidied file name
@@ -868,8 +997,15 @@ void ConfigTab::loadConfig(QString name, int options )
 
 void ConfigTab::on_buttonLoad()
 {
-    QString name = configNameEdit->text();
-    loadConfig(name);
+    QString name = get_configNameEdit();
+    if (m_fileExists(name)) {
+        loadConfig(name);
+    } else {
+        QString msg = QString("File %1 does NOT exist!\nChoose a new config file\n").arg(name);
+        m_tabDialog->tabWidget->setCurrentIndex(M_CFG_TAB); // Select Tab Here
+
+        QMessageBox::warning(this, tr("File Not Found"),msg,QMessageBox::Ok);
+    }
 }
 
 void ConfigTab::on_buttonView()
