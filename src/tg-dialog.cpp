@@ -158,6 +158,7 @@ void load_ComboBox(QComboBox *comb, const char *group, const char *title, set_fu
 
 QComboBox *fileNameEdit = 0;
 QComboBox *configNameEdit = 0;
+QComboBox *outputNameEdit = 0;
 
 QString get_fileNameEdit() { return get_currentText(fileNameEdit); }
 void set_fileNameEdit(QString file) { set_currentText(fileNameEdit,file); }
@@ -169,38 +170,35 @@ void set_configNameEdit(QString file) { set_currentText(configNameEdit,file); }
 void save_configNameEdit() { save_ComboBox(configNameEdit, "configs", S_CONFIG); }
 void load_configNameEdit() { load_ComboBox(configNameEdit, "configs", S_CONFIG, set_configNameEdit); }
 
+QString get_outputNameEdit() { return get_currentText(outputNameEdit); }
+void set_outputNameEdit(QString file) { set_currentText(outputNameEdit,file); }
+void save_outputNameEdit() { save_ComboBox(outputNameEdit, "outputs", S_OUTPUT); }
+void load_outputNameEdit() { load_ComboBox(outputNameEdit, "outputs", S_OUTPUT, set_outputNameEdit); }
+
+
 #else
 QLineEdit *fileNameEdit = 0;
 QLineEdit *configNameEdit = 0;
-QString get_fileNameEdit()
-{
-    QString file = fileNameEdit->text();
-    return file;
-}
-void set_fileNameEdit(QString file)
-{
-        fileNameEdit->setText(file);
-}
-QString configNameEdit()
-{
-    QString file = configNameEdit->text();
-    return file;
-}
-void set_configNameEdit(QString file)
-{
-    configNameEdit->setText(file);
-}
+QLineEdit *outputNameEdit = 0;
+
+QString get_fileNameEdit() { QString file = fileNameEdit->text(); return file; }
+void set_fileNameEdit(QString file) { fileNameEdit->setText(file); }
+
+QString get_configNameEdit() { QString file = configNameEdit->text(); return file; }
+void set_configNameEdit(QString file) { configNameEdit->setText(file); }
+
+QString get_outputNameEdit() { QString file = outputNameEdit->text(); return file; }
+void set_outputNameEdit(QString file) { outputNameEdit->setText(file); }
+
 #endif
 
 QToolButton *fileNameBrowse;
 
-QLineEdit *outputNameEdit;
 QToolButton *outputNameBrowse;
 
 QToolButton *configNameBrowse;
 
 QLineEdit *outNameEdit = 0;
-
 void set_outNameEdit(QString msg)
 {
     if (outNameEdit)
@@ -411,8 +409,13 @@ void TabDialog::closeEvent(QCloseEvent *event)
         ccp = "";
     }
     ConfigTabPtr->saveConfig(cfg_file, ccp, lcfo_silent | lcfo_noerr ); // silently rest config to default saved
+
+#ifdef USE_COMBO_BOX    // save combos
     save_fileNameEdit();
     save_configNameEdit();    // save the list
+    save_outputNameEdit();
+#endif
+
     event->accept();
 }
 
@@ -510,7 +513,15 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     fileNameBrowse->setIcon(QIcon(":/icon/open"));
     fileNameBrowse->setToolButtonStyle(Qt::ToolButtonIconOnly);
 
+#ifdef USE_COMBO_BOX    // configNameEdit = new QComboBox(this)
+    outputNameEdit = new QComboBox(this);
+    load_outputNameEdit();    // load any previous
+    outputNameEdit->setEditable(true);
+    // should I add this??? Is it needed
+    outputNameEdit->setInsertPolicy(QComboBox::InsertAtTop);
+#else
     outputNameEdit = new QLineEdit("");
+#endif
     outputNameBrowse = new QToolButton();
     outputNameBrowse->setToolTip("Browse for output file");
     outputNameBrowse->setIcon(QIcon(":/icon/save"));
@@ -574,7 +585,11 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     outputfileLay->addWidget(outputNameEdit);
     outputfileLay->addWidget(outputNameBrowse);
     connect(outputNameBrowse, SIGNAL(clicked()),this,SLOT(on_outputNameBrowse()));
+#ifdef USE_COMBO_BOX    // outputNameEdit connect
+    connect(outputNameEdit, SIGNAL(currentIndexChanged(int)), this, SLOT(on_outputNameEdit()));
+#else
     connect(outputNameEdit,SIGNAL(editingFinished()),this,SLOT(on_outputNameEdit()));
+#endif
 
     outputfileGroup->setLayout(outputfileLay);
     mainLayout->addWidget(outputfileGroup);
@@ -608,7 +623,7 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     QString file = pinf->outputStr;
     if (!file.size())
         file = m_settings->value(S_OUTPUT,"").toString();
-    outputNameEdit->setText(file);
+    set_outputNameEdit(file);
 
     file = pinf->configStr;
     if (!file.size())
@@ -635,7 +650,7 @@ void GeneralTab::on_fileNameEdit()
 
 void GeneralTab::on_outputNameEdit()
 {
-    QString file = outputNameEdit->text();
+    QString file = get_outputNameEdit();
     if (m_fileExists(file)) {
         outputNameEdit->setStyleSheet("border: 1px solid red"); // red - will overwrite
     } else {
@@ -680,9 +695,10 @@ void GeneralTab::on_outputNameBrowse()
 {
     QString title = "Choose output name";
     QString filters = filterSpec;
-    QString outputFile = QFileDialog::getSaveFileName(this, title, outputNameEdit->text(), filters);
+    QString file = get_outputNameEdit();
+    QString outputFile = QFileDialog::getSaveFileName(this, title, file, filters);
     if(outputFile.length() > 0) {
-        outputNameEdit->setText(outputFile);
+        set_outputNameEdit(outputFile);
         m_settings->setValue( S_OUTPUT, outputFile );  // save the output file name
         on_outputNameEdit();
     }
@@ -752,7 +768,7 @@ void OutputTab::on_butSaveAs()
         // TODO: Dialog no text to save
         return;
     }
-    QString name = outputNameEdit->text();
+    QString name = get_outputNameEdit();
     name = name.trimmed();
     QString title = "Choose output name";
     QString filters = filterSpec;
@@ -764,7 +780,7 @@ void OutputTab::on_butSaveAs()
             QTextStream stream( &file );
             stream << text;
             file.close();
-            outputNameEdit->setText(outputFile);
+            set_outputNameEdit(outputFile);
             m_settings->setValue( S_OUTPUT, outputFile );  // save the output file name
         } else {
             // TODO: Dialog can NOT open file
