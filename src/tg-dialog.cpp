@@ -1036,13 +1036,21 @@ void ConfigTab::loadConfig(QString name, int options )
 
 void ConfigTab::on_buttonLoad()
 {
-    QString name = get_configNameEdit();
-    if (m_fileExists(name)) {
-        loadConfig(name);
-    } else {
-        QString msg = QString("File %1 does NOT exist!\nChoose a new config file\n").arg(name);
-        m_tabDialog->tabWidget->setCurrentIndex(M_GEN_TAB); // Select Tab Here
-        QMessageBox::warning(this, tr("File Not Found"),msg,QMessageBox::Ok);
+    QString title = "Choose config file";
+    QString filters = filterSpec2;
+    QString file = get_configNameEdit();
+    QString name = QFileDialog::getOpenFileName(this, title, file, filters);
+    if(name.length() > 0) {
+        set_configNameEdit(name);
+        m_settings->setValue( S_CONFIG, name );  // save the config file name
+        //GeneralTabPtr->on_configNameEdit();
+        if (m_fileExists(name)) {
+            loadConfig(name);
+        } else {
+            QString msg = QString("File %1 does NOT exist!\nChoose a new config file\n").arg(name);
+            m_tabDialog->tabWidget->setCurrentIndex(M_GEN_TAB); // Select Tab Here
+            QMessageBox::warning(this, tr("File Not Found"),msg,QMessageBox::Ok);
+        }
     }
 }
 
