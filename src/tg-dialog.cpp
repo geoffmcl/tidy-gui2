@@ -579,7 +579,7 @@ GeneralTab::GeneralTab( PINFOSTR pinf, QWidget *parent)
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
     QLineEdit *libverEdit = new QLineEdit("");
-    QString s = QString("Using HTML Tidy library version %1").arg(getLibVersion());
+    QString s = QString("Using HTML Tidy library version %1 date %2").arg(getLibVersion(),getLibDate());
     libverEdit->setAlignment(Qt::AlignHCenter);
     libverEdit->setStyleSheet("background:transparent;");
     libverEdit->setText(s);

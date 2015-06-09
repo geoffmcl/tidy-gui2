@@ -164,6 +164,15 @@ const char *getLibVersion()
     strcpy(ccp,v.toStdString().c_str());
     return ccp;
 }
+static char libdate[256];
+const char *getLibDate()
+{
+    char *ccp = libdate;
+    QString v = tidyReleaseDate();
+    v = v.trimmed();
+    strcpy(ccp,v.toStdString().c_str());
+    return ccp;
+}
 
 int runTidyLib( const char *file )
 {
