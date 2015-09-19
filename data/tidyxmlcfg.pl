@@ -1,6 +1,9 @@
 #!/usr/bin/perl -w
 # NAME: tidyxmlcfg.pl
-# AIM: Examine the xml config file
+# AIM: Examine the xml config file, and write the replacement CPP code
+# In other words it uses the tidy xml config output to get all the options
+# available, type, default, and generate the Qt code for the tab dialogs.
+# 16/09/2015 - An attempt to remove the debug_on flag...
 use strict;
 use warnings;
 use File::Basename;  # split path ($name,$dir,$ext) = fileparse($file [, qr/\.[^.]*/] )
@@ -27,13 +30,16 @@ my $outfile = $temp_dir.$PATH_SEP."temp.$pgmname.txt";
 open_log($outfile);
 
 # user variables
-my $VERS = "0.0.5 2015-01-09";
+my $VERS = "0.0.6 2015-09-16";
+##my $VERS = "0.0.5 2015-01-09";
 my $load_log = 0;
 my $in_file = '';
 my $in_file2 = '';
 my $in_file3 = '';
 my $verbosity = 0;
 my $out_file = '';
+my $show_name_list = 0;
+my $add_line_numbers = 0;
 
 my $write_tmp_file = 0;
 my $tmp_out2 = $temp_dir.$PATH_SEP."temptg.h";
@@ -42,9 +48,12 @@ my $tmp_out3 = $temp_dir.$PATH_SEP."temptg.cpp";
 
 # ### DEBUG ###
 my $debug_on = 1;
-my $def_file = 'C:\Projects\qt\qt-gui\src\tidy-gui\data\tidycfg.xml';
-my $def_file2 = 'C:\Projects\qt\qt-gui\src\tidy-gui\tg-dialog.h';
-my $def_file3 = 'C:\Projects\qt\qt-gui\src\tidy-gui\tg-dialog.cpp';
+my $def_file = 'F:\Projects\tidy-gui2\data\tidycfg.xml';
+my $def_file2 = 'F:\Projects\tidy-gui2\src\tg-dialog.h';
+my $def_file3 = 'F:\Projects\tidy-gui2\src\tg-dialog.cpp';
+##my $def_file1 = 'C:\Projects\qt\qt-gui\src\tidy-gui\data\tidycfg.xml';
+##my $def_file2 = 'C:\Projects\qt\qt-gui\src\tidy-gui\tg-dialog.h';
+##my $def_file3 = 'C:\Projects\qt\qt-gui\src\tidy-gui\tg-dialog.cpp';
 
 
 ### program variables
@@ -560,12 +569,171 @@ sub reset_in_file2() {
 
 }
 
-
 #     QLabel *fileNameLabel = new QLabel(tr("File Name:"));
 #     QLineEdit *fileNameEdit = new QLineEdit(fileInfo.fileName());
+sub gen_option_list($) {
+    my ($ra) = @_;  # \@options);
+    my $len = scalar @{$ra};
+    my ($rh,$op,$val,$class,$type,$def,$name,$tt,$label,$token,$lon,$hcnt,$roa,$i,$exam,$curr,$nra);
+    my @opts = qw( name type default example seealso description );
+    my %classes = ();
+    $op = 'class';
+    foreach $rh (@{$ra}) {
+        if (defined ${$rh}{$op}) {
+            $val = ${$rh}{$op};
+            $classes{$val} = 1;
+        }
+    }
+    my @arr = sort keys %classes;
+    my $cnt = scalar @arr;
+    prt("Have $len options, $cnt classes - ".join(" ",@arr)."\n");
+    my @checkboxes = ();
+    my %labels = ();
+    foreach $class (@arr) {
+        prt("Option class '$class'\n");
+        if (! defined $labels{$class}) {
+            $labels{$class} = [];
+        }
+        $nra = $labels{$class};
+        $name = get_tab_name($class);
+        $lon  = get_lo_name($class);
+        #$chh .= get_tab_class($name);
+        #$cpp .= get_imp_head($name);
+        @checkboxes = ();   # clear widget to add
+        foreach $rh (@{$ra}) {
+            $curr  = ${$rh}{class};
+            $type  = ${$rh}{type};
+            $def   = ${$rh}{default};
+            $label = ${$rh}{name};
+            $tt    = ${$rh}{description};
+            $exam  = ${$rh}{example};
+            $token = $label;
+            if ($curr ne $class) {
+                # UGH - Want to switch some page classes
+                if (($curr eq 'markup') && ($class eq 'encoding') &&
+                    (($label eq 'doctype')||($label eq 'repeated-attributes')) ) {
+                    # add this markup to encoding page
+                } elsif (($curr eq 'markup') && ($class eq 'misc') &&
+                    (($label eq 'alt-text') ||
+                     ($label eq 'css-prefix') ||
+                     ($label =~ /^new-(.+)-tags$/)) ) {
+                    # add this markup to misc page
+                } else {
+                    next;
+                }
+            } else {
+                # $class and $curr are the SAME
+                # have moved two to another page
+                if (($curr eq 'markup') &&
+                    (($label eq 'doctype')||($label eq 'repeated-attributes')||
+                        ($label eq 'alt-text') ||
+                        ($label eq 'css-prefix') ||
+                        ($label =~ /^new-(.+)-tags$/) ) ) {
+                    next;   # these have been MOVED to 'encoding' or 'misc'
+                    # mainly due to 'markup' has too many options
+                } elsif (($curr eq "misc")&&($label eq "output-file")) {
+                    next; # output file moved to General (Main) Tab
+                }
+
+            }
+            push(@{$nra},$label);
+            $token =~ s/\-/_/g;
+            if ($type eq 'Boolean') {
+                #$cpp .= get_bool_cb($label,$token,$class,$name);
+                push(@checkboxes,[$token,$type,$label]);   # save to add to layout
+            } elsif ($type eq 'Integer') {
+                #$cpp .= get_edit_int($label,$token,$type,$class,$name);
+                push(@checkboxes,[$token,$type,$label]);   # save to add to layout
+                push(@checkboxes,[$token.'Ed',$type,$label]);   # save to add to layout
+            } elsif ($type eq 'AutoBool') {
+                #$cpp .= get_bool_cb3($label,$token,$type,$class,$name);
+                push(@checkboxes,[$token,$type,$label]);   # save to add to layout
+            } elsif ($type eq 'String') {
+                #$cpp .= get_edit_stg($label,$token,$type,$class,$name);
+                push(@checkboxes,[$token,$type,$label]);   # save to add to layout
+                push(@checkboxes,[$token.'Ed',$type,$label]);   # save to add to layout
+            } elsif ($type eq 'Tag names') {
+                #$cpp .= get_edit_stg($label,$token,$type,$class,$name);
+                push(@checkboxes,[$token,$type,$label]);   # save to add to layout
+                push(@checkboxes,[$token.'Ed',$type,$label]);   # save to add to layout
+            } elsif ($type eq 'Encoding') {
+                #$cpp .= get_combo($label,$token,$exam,$type,$class,$name);
+                push(@checkboxes,[$token,$type,$label]);   # save to add to layout
+            } elsif ($type eq 'enum') {
+                #$cpp .= get_combo($label,$token,$exam,$type,$class,$name);
+                push(@checkboxes,[$token,$type,$label]);   # save to add to layout
+            } elsif ($type eq 'DocType') {
+                #$cpp .= get_combo($label,$token,$exam,$type,$class,$name);
+                push(@checkboxes,[$token,$type,$label]);   # save to add to layout
+            } else {
+                prt("\n");
+                prtw("WARNING: unhandled type $type! *** FIX ME ***\n");
+                foreach $op (@opts) {
+                    if (defined ${$rh}{$op}) {
+                        $val = ${$rh}{$op};
+                        prt("$op: $val\n");
+                    }
+                }
+            }
+        }
+        $cnt = scalar @checkboxes;
+        if ($class eq 'markup') {
+            $hcnt = int($cnt / 2);
+            my $n1 = $lon."1";
+            my $n2 = $lon."2";
+            #$cpp .= "\n";
+            #$cpp .= "    QVBoxLayout *$n1 = new QVBoxLayout;\n";
+            for ($i = 0; $i < $hcnt; $i++) {
+                $roa = $checkboxes[$i];
+                $token = ${$roa}[0];
+                $type  = ${$roa}[1];
+                $label = ${$roa}[2];
+                #$cpp .= "    $n1->addWidget($token);\n";
+            }
+            #$cpp .= "    $n1->addStretch(1);\n";
+            #$cpp .= "\n";
+            #$cpp .= "    QVBoxLayout *$n2 = new QVBoxLayout;\n";
+            for (; $i < $cnt; $i++) {
+                $roa = $checkboxes[$i];
+                $token = ${$roa}[0];
+                $type  = ${$roa}[1];
+                $label = ${$roa}[2];
+                #$cpp .= "    $n2->addWidget($token);\n";
+            }
+            #$cpp .= "    $n2->addStretch(1);\n";
+            #$cpp .= "\n";
+            #$cpp .= "    QHBoxLayout *$lon = new QHBoxLayout;\n";
+            #$cpp .= "    $lon->addLayout($n1);\n";
+            #$cpp .= "    $lon->addLayout($n2);\n";
+            #$cpp .= "    setLayout($lon);\n";
+        } else {
+            #$cpp .= "\n";
+            #$cpp .= "    QVBoxLayout *$lon = new QVBoxLayout;\n";
+            for ($i = 0; $i < $cnt; $i++) {
+                $roa = $checkboxes[$i];
+                $token = ${$roa}[0];
+                $type  = ${$roa}[1];
+                $label = ${$roa}[2];
+                #$cpp .= "    $lon->addWidget($token);\n";
+            }
+            #$cpp .= "    $lon->addStretch(1);\n";
+            #$cpp .= "    setLayout($lon);\n";
+        }
+        #$cpp .= "}\n\n";
+    }
+    @arr = keys %labels;    # get the 'class' key
+    $cnt = scalar @arr;
+    prt("Show of $cnt class labels...\n");
+    foreach $class (@arr) {
+        $nra = $labels{$class};
+        prt("class $class labs ".join(" ",@{$nra})."\n");
+    }
+    # pgm_exit(1,"TEMP EXIT!\n");
+}
 
 sub show_options($) {
     my ($ra) = @_;  # \@options);
+    gen_option_list($ra) if (VERB9());
     my $len = scalar @{$ra};
     my ($rh,$op,$val,$class,$type,$def,$name,$tt,$label,$token,$lon,$hcnt,$roa,$i,$exam,$curr);
     my @opts = qw( name type default example seealso description );
@@ -857,6 +1025,8 @@ sub process_in_file($) {
     my $href = '';
     my %hash = ();  # for each option
     my @options = ();   # stack option hashes
+    my @namelist = ();
+    my $last_txt = '';
     foreach $line (@lines) {
         chomp $line;
         $lnn++;
@@ -870,8 +1040,16 @@ sub process_in_file($) {
                 $tag .= $ch;
                 if ($ch eq '>') {
                     if (VERB5()) {
-                        prt($txt) if (length($txt));
+                        prt("$lnn: ") if ($add_line_numbers);
+                        if (length($txt)) {
+                            if ($txt ne $last_txt) {
+                                prt($txt);
+                            }
+                            $last_txt = $txt;
+                        }
                         prt($tag);
+                        ##prt("\n");
+
                     }
                     if ($tag =~ /^<\/(\w+)>/) {
                         $inc = $1;  # closing tag
@@ -889,13 +1067,14 @@ sub process_in_file($) {
                                     if ($inopt) {
                                         my %h = %hash;
                                         push(@options, \%h);
+                                        %hash = (); # restart the hash
                                     }
                                     $inopt = 0;
-
                                 } elsif ($last eq 'name') {
                                     # <name>indent-spaces</name>
                                     if ($inname && length($txt)) {
                                         $hash{name} = $txt;
+                                        push(@namelist,[$lnn,$txt]);
                                     } else {
                                         prtw("WARNING: $lnn: Close $last FAILED\n");
                                     }
@@ -1060,14 +1239,31 @@ sub process_in_file($) {
             }
         }
     }
-    $len = scalar @options;
-    show_options(\@options);
+    if (defined $hash{name} && defined $hash{type} && defined $hash{default}) {
+        my %h2 = %hash;
+        push(@options, \%h2);
+        prt("Added last option...\n")
+    }
     $len = scalar @tagstack;
     if ($len) {
         prtw("WARNING: $len on stack! ".join(" ",@tagstack)."\n");
     } else {
         prt("Apppears a clean parse of $inf\n");
     }
+    prt("\n\n") if (VERB5());
+    if (VERB9() || $show_name_list) {
+        $len = scalar @namelist;
+        prt("=====================================\n");
+        prt("NAMES: list of $len options...\n");
+        foreach my $ra (@namelist) {
+            $lnn = ${$ra}[0];
+            $txt = ${$ra}[1];
+            prt("$lnn: $txt\n");
+        }
+        prt("=====================================\n");
+    }
+    $len = scalar @options;
+    show_options(\@options);
     #$load_log = 1;
 }
 
@@ -1137,6 +1333,8 @@ sub parse_args {
             $in_file2 = $def_file2;
             $in_file3 = $def_file3;
         }
+        $load_log = 1;
+        ### $verbosity = 5;
     }
     if (length($in_file) ==  0) {
         pgm_exit(1,"ERROR: No input files found in command!\n");
