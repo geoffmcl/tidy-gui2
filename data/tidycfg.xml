@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<config version="4.9.30">
+<config version="5.1.11">
  <option class="print">
   <name>indent-spaces</name>
   <type>Integer</type>
@@ -117,7 +117,7 @@
  <option class="diagnostics">
   <name>show-info</name>
   <type>Boolean</type>
-  <default>no</default>
+  <default>yes</default>
   <example>y/n, yes/no, t/f, true/false, 1/0</example>
   <description>This option specifies if Tidy should display info-level messages. </description>
  </option>
@@ -429,7 +429,7 @@
  <option class="misc">
   <name>tidy-mark</name>
   <type>Boolean</type>
-  <default>no</default>
+  <default>yes</default>
   <example>y/n, yes/no, t/f, true/false, 1/0</example>
   <description>This option specifies if Tidy should add a meta element to the document head to indicate that the document has been tidied. Tidy won't add a meta element if one is already present. </description>
  </option>
@@ -620,10 +620,10 @@
  </option>
  <option class="print">
   <name>vertical-space</name>
-  <type>Boolean</type>
+  <type>AutoBool</type>
   <default>no</default>
-  <example>y/n, yes/no, t/f, true/false, 1/0</example>
-  <description>This option specifies if Tidy should add some empty lines for readability. </description>
+  <example>auto, y/n, yes/no, t/f, true/false, 1/0</example>
+  <description>This option specifies if Tidy should add some extra empty lines for readability. Default is 'no'. If set to 'auto', will eliminate nearly all newline chars.</description>
  </option>
  <option class="print">
   <name>punctuation-wrap</name>
@@ -691,5 +691,12 @@
   <default>no</default>
   <example>y/n, yes/no, t/f, true/false, 1/0</example>
   <description>Set this option "on" to indent using tabs instead of the default spaces. The option TidyIndentSpaces controls the number of tabs output per level of indent, which is reset to 1, when this option is set on. And of course, indent must be enabled for this to have any effect. Note TidyTabSize controls converting input tabs to spaces. Set to zero to retain input tabs. </description>
+ </option>
+ <option class="markup">
+  <name>skip-quotes</name>
+  <type>Boolean</type>
+  <default>no</default>
+  <example>y/n, yes/no, t/f, true/false, 1/0</example>
+  <description>This option specifies that Tidy should skip quotes, and comments when parsing script data. </description>
  </option>
 </config>
