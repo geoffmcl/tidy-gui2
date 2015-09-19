@@ -1,6 +1,6 @@
 # Tidy GUI2
 
-This project uses Qt to create a cross-platform GUI application, and uses an external libtidy so can be kept up-to-date. Additionally, uses a perl script to generate a large chunk of the config page code, so can be easily kept up-to-date as features are added or removed from libtidy source.
+This project uses Qt to create a cross-platform GUI application, and uses an external libtidy so can be kept up-to-date. Additionally, uses a perl script to generate a large chunk of the tab dialogs code, so can be easily kept up-to-date as features are added or removed from libtidy source.
 
 See `History` below for a considerable list of attempts at this. While this is a serious working attempt at a Tidy GUI, it was also done to remind myself Qt4 coding, with some perl scripting to be able to auto-generate a big chunk of code from the latest source.
 
@@ -22,11 +22,20 @@ While Qt has is own 'qmake' system, and a Qt Designer GUI IDE, this project is b
 
 And of course is dependant on library Tidy. This can be built and installed from source - https://github.com/htacg/tidy-html5 - or installed from release binaries - http://www.htacg.org/binaries/ - or in unix it may be available from distribution maintainers. 
 
-It is important to make sure the API version is compatible. Thankfully so far this API has NOT changed much, so any version later than 4.9.30 should be ok. It will NOT work with the older libtidy-0.99.so that is still available in some distributions.
+It is important to make sure the API version is compatible. Thankfully so far this API has NOT changed much, so any version later than 5.0.0 should be ok. It will NOT work with the older libtidy-0.99.so that is still available in some distributions.
 
 And as indicated above, if and when there are API version changes, then the output from `tidy -xml-help` needs to be saved, and the perl script tidyxmlcfg.pl run with paths to the xml-help output, AND the paths to the tidy-gui2 source files tg-dialog.cpp and tg-dialog.h so these can be updated for a re-compile of this tidy-gui2.
 
-In this way the several pages of libtidy configuration parameters can be dynamically updated.
+In this way the several pages of libtidy configuration parameters can be dynamically updated. Should be like -
+
+```
+$ cd tidy-gui2   # into the git clone source
+$ cd data
+$ tidy -xml-config > tidycfg.xml # get current XML config
+$ perl tidyxmlcfg.pl tidycfg.xml # warning! WIP - hardcoded paths, etc...
+```
+
+It re-writes the tg-dialog.[cpp|h] with the new code, but the script needs some work, like add the dialog files to the UI, get $debug_on zerored... At present it has **hard coded** paths...
 
 #### Building
 
@@ -76,6 +85,6 @@ As indicated above, this Tidy GUI2 can be compiled against an INSTALLED libtidy 
 
 Enjoy.
 
-20150530
+v5.1.11 - 20150919 - 20150530
 
 ; eof
