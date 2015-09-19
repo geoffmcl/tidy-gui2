@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <tidy.h>
-#include <buffio.h>
+#include <tidybuffio.h>
 #include "tg-dialog.h"
 #include "tg-config.h"
 /*\
@@ -35,7 +35,7 @@
 /*\
  * API Sample Code
 #include <tidy.h>;
-#include <buffio.h>;
+#include <tidybuffio.h>;
 #include <stdio.h>;
 #include <errno.h>;
 int main(int argc, char **argv )
