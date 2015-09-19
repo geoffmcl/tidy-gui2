@@ -231,6 +231,7 @@ public slots: // ADD to MarkupTab
     void on_preserve_entities();
     void on_merge_spans();
     void on_anchor_as_name();
+    void on_skip_quotes();
 
 };
 
