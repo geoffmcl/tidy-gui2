@@ -49,8 +49,10 @@ if(WIN32 AND MSVC)
     # turn off various warnings - none needed in this compile
     set(WARNING_FLAGS "${WARNING_FLAGS} /wd4996")
     # foreach(warning 4244 4251 4267 4275 4290 4786 4305)
-    #     set(WARNING_FLAGS "${WARNING_FLAGS} /wd${warning}")
-    # endforeach(warning)
+    # C4267: '=' : conversion from 'size_t' to 'uint', possible loss
+    foreach(warning 4267)
+        set(WARNING_FLAGS "${WARNING_FLAGS} /wd${warning}")
+    endforeach()
     set( MSVC_FLAGS "-DNOMINMAX -D_USE_MATH_DEFINES -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -D__CRT_NONSTDC_NO_WARNINGS" )
     # if (${MSVC_VERSION} EQUAL 1600)
     #    set( MSVC_LD_FLAGS "/FORCE:MULTIPLE" )
