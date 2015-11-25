@@ -66,11 +66,11 @@ There have been some previous attempts at a Tidy GUI. Some had used the Tidy bin
 
 Some found, in no particular order -
 
- 1. Andre Blavier's TidyGUI - http://ablavier.pagesperso-orange.fr/TidyGUI/ - circa 2001 0 This seems a MS Windows ONLY application, and a quite old built-in version of libtidy source. 
+ 1. Balthisar's Tidy for Work - http://www.balthisar.com/software/tidy/ - current - For Mac OS X only. git source - https://github.com/balthisar/tidy - No MAC so not tried.
  2. Another was F0rud A GTidy-GUI for tidy - https://sourceforge.net/projects/gtidy/ - circa 2004 - This seems a Delphi pascal source, and runs the tidy binary externally, I think. Not tried. 
  3. Charles Creitzel's Tidy UI - http://users.rcn.com/creitzel/tidy.html#tidyui - circa 2003 - but seem unable to find the  source... 
  4. Dirk Paehl's GUITIDY - http://www.paehl.de/tidy/ - circa 2005 - appears another Delphi pascal source. Again seems to run tidy exe externally, but not sure Not tried.
- 5. Balthisar's Tidy for Work - http://www.balthisar.com/software/tidy/ - circa 2015 - Seems for Mac OS X only. Could not find source. Not tried.
+ 5. Andre Blavier's TidyGUI - http://ablavier.pagesperso-orange.fr/TidyGUI/ - circa 2001 0 This seems a MS Windows ONLY application, and a quite old built-in version of libtidy source. 
  6. PC-WELT - http://www.pcwelt.de/downloads/HTML-Tidy-GUI-1218683.html - circa 2002 - Seems Windows only. Page in German. Source not found. Not tried.
  7. DEW Associates Corp - http://www.dewassoc.com/support/useful/tidygui.htm - circa 2000 - Seems a repeat of Andre Blavier's TidyGUI!
  8. Arnaud BERCEGEAY's GEMTidy - http://gemtidy.free.fr/ - circa 2003 - Not sure what this is, or how to use it. Could not find source. Not tried.
