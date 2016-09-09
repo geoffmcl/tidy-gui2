@@ -232,6 +232,7 @@ public slots: // ADD to MarkupTab
     void on_merge_spans();
     void on_anchor_as_name();
     void on_skip_nested();
+    void on_strict_tags_attributes();
 
 };
 
@@ -285,6 +286,7 @@ public slots: // ADD to PrintTab
     void on_punctuation_wrap();
     void on_sort_attributesComb();
     void on_indent_with_tabs();
+    void on_escape_scripts();
 
 };
 
